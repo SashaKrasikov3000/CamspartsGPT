@@ -256,11 +256,11 @@ def csv(csv_data, chat_id, request_id):
 def search(articles):
     try:
         conn = pymysql.connect(
-            host=os.getenv("host"),
-            port=int(os.getenv("port")),
-            user=os.getenv("user"),
-            password=os.getenv("password"),
-            database=os.getenv("database")
+            host=os.environ["host"],
+            port=int(os.environ["port"]),
+            user=os.environ["user"],
+            password=os.environ["password"],
+            database=os.environ["database"]
         )
 
         print("Connected       ", list(articles), "      "+time.ctime())
