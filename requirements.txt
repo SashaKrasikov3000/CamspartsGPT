@@ -1,0 +1,4 @@
+pytelegrambotapi
+fpdf2
+pymysql
+openai
