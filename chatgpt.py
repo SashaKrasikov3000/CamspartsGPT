@@ -218,7 +218,7 @@ def sqlite_query(query):
     if sql_verbouse:
         print(query)
     # logging.info(f"SQL query: {query}")
-    con = sqlite3.connect("/data/Camsparts.db")
+    con = sqlite3.connect("../data/Camsparts.db")
     cursor = con.cursor()
     result = cursor.execute(query).fetchall()
     if any([i in query for i in ["INSERT", "UPDATE", "DELETE"]]):
