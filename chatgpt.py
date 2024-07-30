@@ -8,12 +8,14 @@ from openai import OpenAI
 import os
 import csv as csvlib
 
-bot = telebot.TeleBot(os.environ["TOKEN"])
 branches = {0: "СПБ Парнас", 1: "Ставрополь", 2: "Сургут", 3: "Краснодар", 4: "Тюмень", 5: "Великий Новгород"}   # Словарь id филиалов и названий
 users_inputting = {}   # Флаг если пользователь вводит данные
 csv_data = []
 request_id = 0
 sql_verbouse = False
+
+bot = telebot.TeleBot(os.environ["TOKEN"])
+print("Bot is running")
 
 # TODO:
 #  обработка excel файла,
@@ -218,7 +220,7 @@ def sqlite_query(query):
     if sql_verbouse:
         print(query)
     # logging.info(f"SQL query: {query}")
-    con = sqlite3.connect("../data/Camsparts.db")
+    con = sqlite3.connect("/data/Camsparts.db")
     cursor = con.cursor()
     result = cursor.execute(query).fetchall()
     if any([i in query for i in ["INSERT", "UPDATE", "DELETE"]]):
