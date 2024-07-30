@@ -8,7 +8,7 @@ from openai import OpenAI
 import os
 import csv as csvlib
 
-bot = telebot.TeleBot(os.getenv("token"))
+bot = telebot.TeleBot(os.environ["TOKEN"])
 branches = {0: "СПБ Парнас", 1: "Ставрополь", 2: "Сургут", 3: "Краснодар", 4: "Тюмень", 5: "Великий Новгород"}   # Словарь id филиалов и названий
 users_inputting = {}   # Флаг если пользователь вводит данные
 csv_data = []
@@ -256,11 +256,11 @@ def csv(csv_data, chat_id, request_id):
 def search(articles):
     try:
         conn = pymysql.connect(
-            host=os.environ["host"],
-            port=int(os.environ["port"]),
-            user=os.environ["user"],
-            password=os.environ["password"],
-            database=os.environ["database"]
+            host=os.environ["HOST"],
+            port=int(os.environ["PORT"]),
+            user=os.environ["USER"],
+            password=os.environ["PASSWORD"],
+            database=os.environ["DATABASE"]
         )
 
         print("Connected       ", list(articles), "      "+time.ctime())
