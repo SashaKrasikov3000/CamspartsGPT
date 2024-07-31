@@ -6,10 +6,11 @@ import time
 from openai import OpenAI
 import os
 import csv as csvlib
-os.system("pip3.12 install --upgrade pip setuptools wheel")
-os.system("pip3.12 uninstall fpdf2")
-os.system("pip3.12 install fpdf2")
-time.sleep(10)
+if int(os.environ["AMVERA"]) == 1:
+    os.system("pip3.12 install --upgrade pip setuptools wheel")
+    os.system("pip3.12 uninstall fpdf2")
+    os.system("pip3.12 install fpdf2")
+    time.sleep(10)
 from fpdf import FPDF
 
 branches = {0: "СПБ Парнас", 1: "Ставрополь", 2: "Сургут", 3: "Краснодар", 4: "Тюмень", 5: "Великий Новгород"}   # Словарь id филиалов и названий
@@ -79,7 +80,7 @@ def sys(msg):
 def statistics(msg):
     if sqlite_query(f"SELECT is_admin FROM Users WHERE chat_id = {msg.chat.id}")[0][0] == 0:    # Доступ только у админов
         return
-    for i in [i[0] for i in sqlite_query("SELECT DISTINCT article FROM Requests")]:
+    for i in [i[0] for i in sqlite_query("SELECT article FROM Requests GROUP BY article ORDER BY SUM(amount) DESC")]:
         bot.send_message(msg.chat.id, i + " - " + str(sqlite_query(f"SELECT SUM(amount) FROM Requests WHERE article = '{i}'")[0][0]))
 
 
@@ -224,7 +225,7 @@ def sqlite_query(query):
     if sql_verbouse:
         print(query)
     # logging.info(f"SQL query: {query}")
-    con = sqlite3.connect("/data/Camsparts.db")
+    con = sqlite3.connect("/data/Camsparts.db" if int(os.environ["AMVERA"]) == 1 else "/Users/sasha/PycharmProjects/data/Camsparts.db")
     cursor = con.cursor()
     result = cursor.execute(query).fetchall()
     if any([i in query for i in ["INSERT", "UPDATE", "DELETE"]]):
