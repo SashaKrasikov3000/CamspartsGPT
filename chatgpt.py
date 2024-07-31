@@ -1,12 +1,16 @@
 from telebot import telebot, types
 from datetime import datetime, timezone, timedelta
 import sqlite3
-from fpdf import FPDF
 import pymysql
 import time
 from openai import OpenAI
 import os
 import csv as csvlib
+os.system("pip3.12 install --upgrade pip setuptools wheel")
+os.system("pip3.12 uninstall fpdf2")
+os.system("pip3.12 install fpdf2")
+time.sleep(10)
+from fpdf import FPDF
 
 branches = {0: "СПБ Парнас", 1: "Ставрополь", 2: "Сургут", 3: "Краснодар", 4: "Тюмень", 5: "Великий Новгород"}   # Словарь id филиалов и названий
 users_inputting = {}   # Флаг если пользователь вводит данные
