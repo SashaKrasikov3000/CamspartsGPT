@@ -16,6 +16,7 @@ from fpdf import FPDF
 branches = {0: "СПБ Парнас", 1: "Ставрополь", 2: "Сургут", 3: "Краснодар", 4: "Тюмень", 5: "Великий Новгород"}   # Словарь id филиалов и названий
 users_inputting = {}   # Флаг если пользователь вводит данные
 csv_data = []
+pdf_data = []
 request_id = 0
 sql_verbouse = False
 
@@ -53,6 +54,9 @@ def callback(call):
         csv_file = csv(csv_data, chat_id, request_id)
         bot.send_document(chat_id, csv_file)
         os.system(f"rm {csv_file.name}")
+    if data == "offer":
+        pdf_file = pdf(pdf_data)
+        bot.send_document(chat_id, pdf_file)
 
 
 @bot.message_handler(commands=["start"])
@@ -62,10 +66,12 @@ def greet(msg):
 
 @bot.message_handler(commands=["sql"])
 def sql(msg):
+    message = ""
     if sqlite_query(f"SELECT is_admin FROM Users WHERE chat_id = {msg.chat.id}")[0][0] == 0:    # Доступ только у админов
         return
     for i in sqlite_query(msg.text[4:]):
-        bot.send_message(msg.chat.id, str(i)+"\n")
+        message += str(i)+"\n"
+    bot.send_message(msg.chat.id, message)
 
 
 @bot.message_handler(commands=["sys"])
@@ -96,7 +102,7 @@ def settings(msg):
 # Получение артикула, передача в функцию поиска и обработка
 @bot.message_handler(content_types=["text"])
 def handle_text(msg):
-    global csv_data, request_id
+    global csv_data, request_id, pdf_data
     try:    # Проверка вводит ли пользователь свои данные или заявку
         if users_inputting[msg.chat.id] == 0:
             sqlite_query(f"UPDATE Users SET name = '{msg.text}' WHERE chat_id = '{msg.chat.id}'")
@@ -182,29 +188,28 @@ def handle_text(msg):
                 num += 1
 
     msg_data = not_found+["\n"]+not_available+["\n"]+msg_data
+    pdf_data.append(f"Общая стоимость: {price}")
     print(msg_data)
     keyboard = types.InlineKeyboardMarkup()
     keyboard.add(types.InlineKeyboardButton(text="Отправить заявку", callback_data=str(msg.chat.id) + " csv"))
-    if pdf_data:
-        pdf_data.append(f"Общая стоимость: {price}")
-        pdf_file = pdf(pdf_data)
-        if len("\n".join(msg_data)) < 4000:
-            bot.send_document(msg.chat.id, pdf_file, caption="\n".join(msg_data), reply_to_message_id=msg.id, parse_mode="Markdown", reply_markup=keyboard)
-        else:   # Если нельзя отправить целиком, отправить по частям
-            bot.send_document(msg.chat.id, pdf_file, reply_to_message_id=msg.id)
-            temp = []
-            for i in msg_data:
-                if sum(map(len, temp)) + len(i) > 4000:
-                    bot.send_message(msg.chat.id, "\n".join(temp), parse_mode="Markdown")
-                    temp = [i]
-                else:
-                    temp.append(i)
-            if temp:
-                bot.send_message(msg.chat.id, "\n".join(temp), parse_mode="Markdown", reply_markup=keyboard)
+    keyboard.add(types.InlineKeyboardButton(text="Сгенерировать коммерческое предложение", callback_data=str(msg.chat.id) + " offer"))
+    # if pdf_data:
+    #     if len("\n".join(msg_data)) < 1000:
+    #         bot.send_message(msg.chat.id, "\n".join(msg_data), parse_mode="Markdown", reply_markup=keyboard)
+    #     else:   # Если нельзя отправить целиком, отправить по частям
+    #         temp = []
+    #         for i in msg_data:
+    #             if sum(map(len, temp)) + len(i) > 4000:
+    #                 bot.send_message(msg.chat.id, "\n".join(temp), parse_mode="Markdown")
+    #                 temp = [i]
+    #             else:
+    #                 temp.append(i)
+    #         if temp:
+    #             bot.send_message(msg.chat.id, "\n".join(temp), parse_mode="Markdown", reply_markup=keyboard)
 
-    elif len(msg_data) > 2:
+    if len(msg_data) > 2:
         if len("\n".join(msg_data)) < 4000:
-            bot.send_message(msg.chat.id, "\n".join(msg_data), reply_to_message_id=msg.id, parse_mode="Markdown", reply_markup=keyboard)
+            bot.send_message(msg.chat.id, "\n".join(msg_data), reply_to_message_id=msg.id, parse_mode="Markdown", reply_markup=keyboard if pdf_data else None)
         else:   # Если нельзя отправить целиком, отправить по частям
             temp = []
             for i in msg_data:
@@ -214,7 +219,7 @@ def handle_text(msg):
                 else:
                     temp.append(i)
             if temp:
-                bot.send_message(msg.chat.id, "\n".join(temp), parse_mode="Markdown", reply_markup=keyboard)
+                bot.send_message(msg.chat.id, "\n".join(temp), parse_mode="Markdown")
     else:
         bot.send_message(msg.chat.id, "Товаров по запросу нет в наличии")
     bot.delete_message(msg.chat.id, placeholder.id)
